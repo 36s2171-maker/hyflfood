@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한영외고 급식 조회</title>
+  <!-- 동글동글 뚱뚱한 웹폰트 불러오기 (Jua & MapleStory) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'MaplestoryOTFBold';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.1/MaplestoryOTFBold.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'MaplestoryOTFBold', 'Jua', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(to bottom, #f0f7ff 0%, #e8f3fc 50%, #ffffff 100%);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 벚꽃 및 배경 요소 컨테이너 */
+    #petals-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* 하늘의 흘러가는 은은한 구름 */
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 100px;
+      opacity: 0.8;
+      animation: floatCloud 30s linear infinite;
+      z-index: 1;
+    }
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+    }
+    .cloud1 { width: 150px; height: 50px; top: 40px; left: -160px; animation-duration: 35s; }
+    .cloud1::before { width: 70px; height: 70px; top: -30px; left: 20px; }
+    .cloud1::after { width: 60px; height: 60px; top: -20px; left: 70px; }
+
+    .cloud2 { width: 220px; height: 65px; top: 90px; left: -240px; animation-duration: 25s; animation-delay: 4s; }
+    .cloud2::before { width: 95px; height: 95px; top: -45px; left: 35px; }
+    .cloud2::after { width: 75px; height: 75px; top: -30px; left: 105px; }
+
+    @keyframes floatCloud {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(100vw + 350px)); }
+    }
+
+    /* 
+      =========================================
+      이미지 스타일 반영: 학교 건물 및 정원 일러스트 
+      =========================================
+    */
+    .scene-bg {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 480px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* 잔디 언덕 및 오솔길 */
+    .lawn {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(to bottom, #a3d977 0%, #7ec255 100%);
+      border-top: 4px solid #82b958;
+    }
+    .path {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 180px;
+      background: linear-gradient(to bottom, #f2e1b8 0%, #edd8a4 100%);
+      clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+      border-left: 2px solid #dfc384;
+      border-right: 2px solid #dfc384;
+    }
+
+    /* 중앙 아이보리색 학교 본관 건물 */
+    .school-building-main {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 580px;
+      height: 200px;
+      background: #faf6eb;
+      border: 3px solid #8c7f6b;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .building-wing-left, .building-wing-right {
+      position: absolute;
+      bottom: 0;
+      width: 140px;
+      height: 160px;
+      background: #faf6eb;
+      border-top: 3px solid #8c7f6b;
+    }
+    .building-wing-left { left: -140px; border-left: 3px solid #8c7f6b; }
+    .building-wing-right { right: -140px; border-right: 3px solid #8c7f6b; }
+
+    /* 주황 띠 포인트 */
+    .stripe {
+      position: absolute;
+      top: 50px;
+      width: 100%;
+      height: 12px;
+      background: #e8a87c;
+      border-top: 1px solid #d49163;
+      border-bottom: 1px solid #d49163;
+    }
+
+    /* 중앙 시계탑 & 지붕 & 깃발 */
+    .clock-section {
+      position: absolute;
+      top: -65px;
+      width: 140px;
+      height: 65px;
+      background: #faf6eb;
+      border: 3px solid #8c7f6b;
+      border-bottom: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .roof-top {
+      position: absolute;
+      top: -16px;
+      left: -8px;
+      width: 156px;
+      height: 16px;
+      background: #e5dac3;
+      border: 3px solid #8c7f6b;
+      border-radius: 4px 4px 0 0;
+    }
+    .flag-pole {
+      position: absolute;
+      top: -55px;
+      left: 50%;
+      width: 3px;
+      height: 40px;
+      background: #6d6d6d;
+    }
+    .flag {
+      position: absolute;
+      top: 0;
+      left: 3px;
+      width: 28px;
+      height: 18px;
+      background: #ffffff;
+      border: 2px solid #6d6d6d;
+      clip-path: polygon(0 0, 100% 20%, 80% 50%, 100% 80%, 0 100%);
+    }
+    .clock-circle {
+      width: 34px;
+      height: 34px;
+      background: #ffffff;
+      border: 3px solid #555;
+      border-radius: 50%;
+      position: relative;
+    }
+    .clock-circle::after {
+      content: '';
+      position: absolute;
+      top: 5px; left: 12px;
+      width: 2px; height: 11px;
+      background: #333;
+      box-shadow: 4px 6px 0 #333;
+    }
+
+    /* 창문 & 현관 */
+    .window-grid {
+      display: flex;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .win-box {
+      width: 28px;
+      height: 22px;
+      background: #7ec0ee;
+      border: 2px solid #6b7c8d;
+      border-radius: 2px;
+    }
+    .main-entrance {
+      position: absolute;
+      bottom: 0;
+      width: 110px;
+      height: 55px;
+      background: #cde4f7;
+      border: 3px solid #8c7f6b;
+      border-bottom: none;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+    }
+    .glass-door {
+      width: 45%;
+      height: 80%;
+      background: #89c4f4;
+      border: 2px solid #5992c2;
+    }
+
+    /* 좌우 풍성한 벚꽃나무 (이미지 구현 스타일) */
+    .blossom-tree {
+      position: absolute;
+      bottom: 110px;
+      z-index: 5;
+    }
+    .blossom-tree.left-side { left: -40px; }
+    .blossom-tree.right-side { right: -40px; transform: scaleX(-1); }
+
+    .tree-trunk-big {
+      width: 50px;
+      height: 200px;
+      background: #5d4037;
+      margin: 0 auto;
+      border-radius: 12px;
+    }
+    .tree-crown {
+      width: 280px;
+      height: 260px;
+      background: #fca1b7;
+      border-radius: 50%;
+      margin-bottom: -150px;
+      box-shadow: 
+        -40px 30px 0 #f88ba7,
+        40px 20px 0 #fbb2c4,
+        0 -30px 0 #f77295,
+        -20px -10px 0 #ffc1d0;
+      position: relative;
+    }
+
+    /* 정원 부쉬 & 분홍 꽃밭 */
+    .garden-bush {
+      position: absolute;
+      bottom: 120px;
+      width: 140px;
+      height: 60px;
+      background: #8ec657;
+      border-radius: 50px 50px 0 0;
+      z-index: 4;
+    }
+    .bush-left { left: 12%; }
+    .bush-right { right: 12%; }
+
+    .flower-patch {
+      position: absolute;
+      bottom: 30px;
+      font-size: 1.5rem;
+      z-index: 6;
+      letter-spacing: 5px;
+    }
+    .patch-left { left: 8%; }
+    .patch-right { right: 8%; }
+
+
+    /* 
+      =========================================
+      메인 콘텐츠 영역 UI
+      =========================================
+    */
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 720px;
+      margin: 35px auto 180px auto;
+      padding: 30px 25px;
+      background: rgba(255, 255, 255, 0.93);
+      border: 4px solid #ffb6c1;
+      border-radius: 35px;
+      box-shadow: 0 15px 35px rgba(255, 182, 193, 0.35);
+      backdrop-filter: blur(6px);
+    }
+
+    /* 알록달록 뚱뚱한 타이틀 */
+    .title {
+      text-align: center;
+      font-size: 2.3rem;
+      margin-bottom: 25px;
+      text-shadow: 2px 2px 0px #ffffff, 4px 4px 0px #ffb6c1;
+      letter-spacing: 1px;
+    }
+    .title span {
+      display: inline-block;
+      animation: bounce 2s infinite ease-in-out;
+    }
+    .title span:nth-child(even) { color: #ff4d8d; }
+    .title span:nth-child(odd) { color: #ff0055; }
+    .title span:nth-child(3n) { color: #ff85a2; }
+    .title span:nth-child(5n) { color: #e60067; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    /* 검색 영역 */
+    .search-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      background: #fff5f8;
+      padding: 15px 20px;
+      border-radius: 25px;
+      border: 3px dashed #ff85a2;
+      margin-bottom: 25px;
+    }
+
+    label {
+      font-size: 1.2rem;
+      color: #d81b60;
+    }
+
+    input[type="date"] {
+      padding: 10px 15px;
+      font-size: 1.1rem;
+      border: 3px solid #ffb6c1;
+      border-radius: 18px;
+      outline: none;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    input[type="date"]:focus {
+      border-color: #ff4d8d;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #d81b60, 0 10px 15px rgba(255, 117, 140, 0.4);
+      transition: all 0.1s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 #d81b60, 0 12px 18px rgba(255, 117, 140, 0.4);
+    }
+    button:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #d81b60;
+    }
+
+    /* 식단 카드 영역 */
+    .meal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .meal-card {
+      background: #ffffff;
+      border-radius: 25px;
+      padding: 22px;
+      border: 4px solid #ffc2d1;
+      box-shadow: 0 8px 20px rgba(255, 182, 193, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .meal-card::before {
+      content: '🌸';
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      font-size: 2.5rem;
+      opacity: 0.25;
+    }
+
+    .meal-card h2 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      color: #ff2a75;
+      border-bottom: 3px dashed #ffe1e8;
+      padding-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cal-badge {
+      font-size: 0.95rem;
+      background: #ffe6ed;
+      color: #d81b60;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    .menu-list {
+      font-size: 1.15rem;
+      line-height: 1.9;
+      color: #4a4a4a;
+      margin: 15px 0;
+      background: #fff9fa;
+      padding: 12px 15px;
+      border-radius: 15px;
+    }
+
+    .info {
+      font-size: 0.95rem;
+      color: #777;
+      background: #f5fafd;
+      padding: 12px;
+      border-radius: 12px;
+      border-left: 4px solid #a0d8ef;
+      line-height: 1.5;
+    }
+
+    .empty {
+      text-align: center;
+      color: #ff6b95;
+      font-size: 1.3rem;
+      padding: 40px 20px;
+      background: #fff5f8;
+      border-radius: 20px;
+      border: 3px dashed #ffb6c1;
+      grid-column: 1 / -1;
+    }
+
+    /* 흩날리는 벚꽃 애니메이션 */
+    .petal {
+      position: fixed;
+      background: #ffc0cb;
+      border-radius: 150% 0 150% 0;
+      pointer-events: none;
+      z-index: 1000;
+      animation: animatePetal 4s linear forwards;
+    }
+
+    @keyframes animatePetal {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg) scale(0.8);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--x-end), 100vh) rotate(720deg) scale(1.2);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 하늘 구름 -->
+  <div class="cloud cloud1"></div>
+  <div class="cloud cloud2"></div>
+
+  <!-- 이미지 배경 느낌 구현 (학교 건물, 정원, 오솔길, 벚꽃 나무) -->
+  <div class="scene-bg">
+    <!-- 잔디와 중앙 오솔길 -->
+    <div class="lawn">
+      <div class="path"></div>
+    </div>
+
+    <!-- 학교 건물 일러스트 -->
+    <div class="school-building-main">
+      <div class="stripe"></div>
+      <div class="clock-section">
+        <div class="roof-top">
+          <div class="flag-pole"><div class="flag"></div></div>
+        </div>
+        <div class="clock-circle"></div>
+      </div>
+      <div class="window-grid">
+        <div class="win-box"></div><div class="win-box"></div><div class="win-box"></div>
+      </div>
+      <div class="main-entrance">
+        <div class="glass-door"></div>
+        <div class="glass-door"></div>
+      </div>
+      <!-- 좌우 건물의 날개 부분 -->
+      <div class="building-wing-left"></div>
+      <div class="building-wing-right"></div>
+    </div>
+
+    <!-- 좌우 벚꽃 나무 -->
+    <div class="blossom-tree left-side">
+      <div class="tree-crown"></div>
+      <div class="tree-trunk-big"></div>
+    </div>
+    <div class="blossom-tree right-side">
+      <div class="tree-crown"></div>
+      <div class="tree-trunk-big"></div>
+    </div>
+
+    <!-- 정원 부쉬 & 꽃밭 -->
+    <div class="garden-bush bush-left"></div>
+    <div class="garden-bush bush-right"></div>
+    <div class="flower-patch patch-left">🌸🌸🌸</div>
+    <div class="flower-patch patch-right">🌸🌸🌸</div>
+  </div>
+
+  <!-- 벚꽃 생성용 레이어 -->
+  <div id="petals-container"></div>
+
+  <!-- 메인 UI 카드 -->
+  <div class="container">
+    <h1 class="title" id="animatedTitle">
+      🌸 한영외고 급식 조회 🌸
+    </h1>
+
+    <div class="search-box">
+      <label for="mealDate">📅 날짜 선택:</label>
+      <input type="date" id="mealDate">
+      <button onclick="handleSearch()">🌸 급식 조회</button>
+    </div>
+
+    <div id="mealResult" class="meal-grid">
+      <div class="empty">날짜를 선택하고 [급식 조회] 버튼을 눌러주세요! 🌸</div>
+    </div>
+  </div>
+
+<script>
+  // 타이틀 글자별 분리 및 핑크 그라데이션 적용
+  const titleEl = document.getElementById('animatedTitle');
+  const text = titleEl.innerText;
+  titleEl.innerHTML = '';
+  [...text].forEach((char, index) => {
+    const span = document.createElement('span');
+    span.innerText = char === ' ' ? '\u00A0' : char;
+    span.style.animationDelay = `${index * 0.1}s`;
+    titleEl.appendChild(span);
+  });
+
+  // 오늘 날짜 세팅
+  document.getElementById('mealDate').value = new Date().toISOString().substring(0, 10);
+
+  // 조회 시 벚꽃 잎 흩날림 애니메이션
+  function createSakuraPetals() {
+    const container = document.getElementById('petals-container');
+    const petalColors = ['#ffb7c5', '#ffc0cb', '#ffe4e1', '#ff69b4', '#ff85a2'];
+
+    for (let i = 0; i < 45; i++) {
+      setTimeout(() => {
+        const petal = document.createElement('div');
+        petal.className = 'petal';
+        
+        const size = Math.random() * 12 + 10;
+        const startX = Math.random() * window.innerWidth;
+        const endXShift = (Math.random() - 0.5) * 300;
+        
+        petal.style.width = `${size}px`;
+        petal.style.height = `${size}px`;
+        petal.style.left = `${startX}px`;
+        petal.style.top = `-20px`;
+        petal.style.background = petalColors[Math.floor(Math.random() * petalColors.length)];
+        petal.style.setProperty('--x-end', `${endXShift}px`);
+        petal.style.animationDuration = `${Math.random() * 2 + 2.5}s`;
+
+        container.appendChild(petal);
+
+        setTimeout(() => petal.remove(), 4500);
+      }, i * 60);
+    }
+  }
+
+  function handleSearch() {
+    createSakuraPetals();
+    fetchMealInfo();
+  }
+
+  async function fetchMealInfo() {
+    const rawDate = document.getElementById('mealDate').value;
+    if (!rawDate) {
+      alert("날짜를 선택해주세요! 🌸");
+      return;
+    }
+
+    const ymd = rawDate.replace(/-/g, '');
+    const apiKey = '95337edfb2b2456e9866ae124aeafe23';
+    const eduCode = 'B10'; // 서울특별시교육청
+    const schoolCode = '7010259'; // 한영외국어고등학교
+    
+    const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${apiKey}&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${eduCode}&SD_SCHUL_CODE=${schoolCode}&MLSV_YMD=${ymd}`;
+
+    const resultDiv = document.getElementById('mealResult');
+    resultDiv.innerHTML = '<div class="empty">🌸 봄바람을 타고 급식을 불러오는 중입니다... 🍱</div>';
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.mealServiceDietInfo) {
+        const rows = data.mealServiceDietInfo[1].row;
+        resultDiv.innerHTML = '';
+
+        rows.forEach(item => {
+          const menuClean = item.DDISH_NM.split('<br/>').join('<br/>🌸 ');
+          
+          const cardHtml = `
+            <div class="meal-card">
+              <h2>
+                <span>🍱 ${item.MMEAL_SC_NM}</span>
+                <span class="cal-badge">${item.CAL_INFO}</span>
+              </h2>
+              <div class="menu-list">🌸 ${menuClean}</div>
+              <div class="info">
+                <strong>👩‍🍳 급식인원:</strong> ${item.MLSV_FGR}명<br/>
+                <strong>🥗 영양성분:</strong><br/> ${item.NTR_INFO.split('<br/>').join(', ')}
+              </div>
+            </div>
+          `;
+          resultDiv.innerHTML += cardHtml;
+        });
+      } else {
+        resultDiv.innerHTML = '<div class="empty">🍃 해당 날짜에는 등록된 급식 메뉴가 없어요! (주말/공휴일 등)</div>';
+      }
+    } catch (error) {
+      console.error(error);
+      resultDiv.innerHTML = '<div class="empty">⚠️ 데이터를 불러오지 못했습니다.<br/>(브라우저 CORS 제한 시 로컬 웹서버 환경이 필요합니다)</div>';
+    }
+  }
+</script>
+
+</body>
+</html>
